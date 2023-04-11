@@ -137,20 +137,5 @@ play_notes(200, 5, "^A- B- C- D- E- F- G- ^^G F E D C B A")
 
 audio_close();
 ```
-## Running the test code
-```
-$ cd memblock
-$ make
-$ cd test
-$ make
-$ ./mbtest
-$ ./mbtest_dyn
-```
-## Possible Improvements
-- More memory spaces
-- Thread protection
-- Reduce memory block overhead to 2 bits (only 3 values are needed for mapping)
-- Disallow odd number of block allocations > 1 to reduce memory fragmentation (more wasted memory)
-
 ## License
 MIT License
