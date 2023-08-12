@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2023 Brian Corriveau  https://github.com/bcorriveau/snackade
+Copyright (c) 2023 Brian Corriveau  https://github.com/bcorriveau/audio8
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

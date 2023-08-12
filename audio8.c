@@ -68,7 +68,7 @@ typedef struct octave_s {
 #define OCTAVE_MIN  0
 #define OCTAVE_MAX  3
 #define OCTAVES     4
-/* First Octave contains middle C = 262Hz 
+/* Third octave contains middle C = 262Hz
  *                         Notes - A    B    C    D    E    F    G                       */
 octave_t octave[OCTAVES] = {
                               {{{  52,  58,  62,  69,  78,  82,  93 },      /* flats       */
@@ -102,7 +102,7 @@ static tone_t user_tone[4];
  *   si:        sample index
  *   wavelen:   wavelength
  *   volume:    volume
- *   level:    effect level
+ *   level:     effect level
  */
 int gen_tone_val(int si, int wavelen, int volume, int effect_level)
 {
@@ -132,7 +132,8 @@ int gen_tone_val(int si, int wavelen, int volume, int effect_level)
  */
 void create_tone_sq(tone_t *user_tone, Uint8 *stream, int len ) 
 {
-    int i, v, samples;
+    int i, samples;
+    int v; /* voice */
     Uint8 *datap, value;
 
     datap = (Uint8 *) stream;
@@ -206,11 +207,11 @@ void create_tone_sq(tone_t *user_tone, Uint8 *stream, int len )
 /* create_tone_cb - calls the selected tone generator
  *
  * Params:
- *  userdata    - pointer to a user tone pointer
+ *  user_tone   - user tone array, element per voice
  *  stream      - points to where to put samples
  *  len         - length of stream in bytes
  */
-void create_tone_cb(void *userdata, Uint8 *stream, int len ) 
+void create_tone_cb(void *user_tone, Uint8 *stream, int len )
 {
     /* get pointer to the user tone to play */
     create_tone_sq(user_tone, stream, len);
@@ -280,6 +281,7 @@ void play_tone(int voice, int hz, int duration, int volume, Effect effect, int e
  *               Notes can be flatted with 'b' or sharped with '#'.
  *               Octave can be moved up and down with '^' or 'v'.
  *               Octave can also be set with a number 1-4.
+ *               Notes are played with voice 0.
  *
  */
  void play_notes(int increment, int volume, char *notes)
@@ -401,7 +403,7 @@ void audio_init(void)
   desired->channels = CHANNELS;
   desired->samples = SAMPLES;
   desired->callback = create_tone_cb;
-  desired->userdata = NULL;
+  desired->userdata = user_tone;
 
   SDL_Init( SDL_INIT_AUDIO);
 
