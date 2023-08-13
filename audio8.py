@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2023 Brian Corriveau  https://github.com/bcorriveau/snackade
+Copyright (c) 2023 Brian Corriveau  https://github.com/bcorriveau/audio8
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +65,7 @@ def play_tone(voice: int,
 def play_notes(inc: int, volume: int, notes: str):
     '''
     Play notes from a string with the given base time increment
+    Notes are played with voice 0.
     :param inc: base time increment in ms, minimum 100
     :param notes: string with notes to play
     :return: None

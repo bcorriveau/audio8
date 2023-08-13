@@ -19,7 +19,7 @@ def main():
     play_notes(200, 5, "4CBA3GFEDCCBA2GFEDC")
     sleep(0.5)
 
-    print("Up from A and down from G to octaves up")
+    print("Up from A and down from G two octaves up")
     play_notes(200, 5, "^A- B- C- D- E- F- G- ^^G F E D C B A")
     sleep(0.5)
 

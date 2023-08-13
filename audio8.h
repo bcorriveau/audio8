@@ -61,6 +61,7 @@ void play_tone(int voice, int hz, int duration, int volume, Effect effect, int e
  *               Notes can be flatted with 'b' or sharped with '#'.
  *               Octave can be moved up and down with '^' or 'v'.
  *               Octave can also be set with a number 1-4.
+ *               Notes are played with voice 0.
  *
  */
  void play_notes(int increment, int volume, char *notes);

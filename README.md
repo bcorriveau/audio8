@@ -1,10 +1,10 @@
 # audio8 - audio retro 8 bit four voice library
 
 ## Synopsis
-Audio package that provides API for generating and playing four voice tones and notes in realtime.
+Audio package that provides API for generating and playing four voice tones and notes in real time.
 Python and C API are supported.
 
-The SDL2 library (e.g. libsdl2-2.0) must be installed for the C backend library to build.
+The SDL2 library and dev library (e.g. libsdl2-2.0, libsdl2-dev)  must be installed for the C backend library to build.
 
 Tones can be played with:
 - no effect
@@ -13,23 +13,23 @@ Tones can be played with:
 - cycle down effect
 - bounce effect
 
-If an effect set then an effect level must also be set, and a low level if the bounce effect is used.
+If an effect is set then an effect level must also be set. If bouce effect is set then a low level must also be set.
 
 There is support for playing notes from Ab1 (52hz) to G#5 (831hz) parsed from a string, including
 holding notes and breaks.
 
-Three demo prpgrams are included:
+Three demo programs are included:
 - note_demo.py: demonstrates playing different notes and tunes
-- tone_demo.py: demononstrate playing different tones with different effects
-- tone_tester.py: allows playing different tones with effects and changing effects on the fly
+- tone_demo.py: demonstrates playing different tones with different effects
+- tone_tester.py: utility for playing different tones with effects and changing effects on the fly
 
 ## API Reference
 
 ### Python3 API
 ```
-audio_init - initialize audio
+audio_init() - initialize audio
 
-audio_close - shut down audio
+audio_close() - shut down audio
 
 class EffectType(Enum):
     NoEffect = 0        # no effect, straight tone
@@ -62,6 +62,7 @@ play_tone(voice: int,
 play_notes(inc: int, volume: int, notes: str)
 
     Play notes from a string with the given base time increment
+    Notes are played with voice 0.
     :param inc: base time increment in ms, minimum 100
     :param notes: string with notes to play
     :return: None
@@ -122,8 +123,10 @@ void play_tone(int voice, int hz, int duration, int volume, Effect effect, int e
 ```
 ## Motivation
 The benefits of this 8 bit audio library are:
-  - Generate retro sounds in realtime, no wave files needed
-  - Up to four voices at the same time
+  - Generate retro sounds in real time, no wave files needed
+  - Up to four voices at the same time, and can be changed on the fly
+    (pygame library sound generation callback does not allow for changing
+     sound without stopping and restarting the playback)
   - MIT License
 ## Code Example
 ```
