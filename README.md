@@ -1,7 +1,7 @@
 # audio8 - audio retro 8 bit four voice library
 
 ## Synopsis
-Audio package that provides API for generating and playing four voice tones and notes in real time.
+Audio package that provides an API for generating and playing four voice tones and notes in real time.
 Python and C API are supported.
 
 The SDL2 library and dev library (e.g. libsdl2-2.0, libsdl2-dev)  must be installed for the C backend library to build.
@@ -128,9 +128,11 @@ The benefits of this 8 bit audio library are:
     (pygame library sound generation callback does not allow for changing
      sound without stopping and restarting the playback)
   - MIT License
-## Code Example
+## Python Code Example
 ```
-audio_init();
+from audio8 import audio_init, audio_close, play_tone, play_notes, EffectType
+
+audio_init()
 
 print("Slow flying saucer")
 play_tone(0, 200, 3000, 5, EffectType.Bounce, 2, 0)
@@ -138,7 +140,7 @@ play_tone(0, 200, 3000, 5, EffectType.Bounce, 2, 0)
 print("Up from A and down from G to octaves up")
 play_notes(200, 5, "^A- B- C- D- E- F- G- ^^G F E D C B A")
 
-audio_close();
+audio_close()
 ```
 ## License
 MIT License
