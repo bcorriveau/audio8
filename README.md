@@ -84,6 +84,7 @@ typedef enum {
     UP      =   2,      /* cycle up     */
     DOWN    =   3,      /* cycle down   */
     BOUNCE  =   4       /* cycle down then down */
+    NOISE   =   5,      /* white noise */
 } Effect;
 
 /* audio_init - initialize audio */
