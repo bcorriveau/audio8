@@ -15,6 +15,8 @@ Tones can be played with:
 
 If an effect is set then an effect level must also be set. If bouce effect is set then a low level must also be set.
 
+There is also a separate white noise effect that does not need a tone or effect level.
+
 There is support for playing notes from Ab1 (52hz) to G#5 (831hz) parsed from a string, including
 holding notes and breaks.
 

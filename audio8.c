@@ -30,10 +30,10 @@
 #define DEBUG 0
 
 #define FREQUENCY (44100 / 2)
-#define SAMPLES (512)
-#define CHANNELS (1)
-#define AMPLITUDE (30)      /* Volume */
-#define SILENCE (128)
+#define SAMPLES 512
+#define CHANNELS 1
+#define VOICES 4
+#define MAX_VOLUME 10
 
 typedef enum {FALSE=0, TRUE=1} BOOL;
 
@@ -44,12 +44,11 @@ typedef struct tone_ {
     struct {
         Effect type;
         unsigned int level;   /* effect level */
-        int c;                /* current effect level */
+        int cur_level;        /* current effect level */
         int low;              /* low for bounce */
         int inc;              /* bounce inc */
     } effect;
     int volume;
-    int duration;       /* duration in ms */
     unsigned int si;    /* current sample index for square wave */
 } tone_t;
 
@@ -93,7 +92,7 @@ octave_t octave[OCTAVES] = {
 static SDL_AudioSpec *obtained;
 
 /* user tone data */
-static tone_t user_tone[4];
+static tone_t user_tone[VOICES];
 
 
 /* gen_tone_val - generates a value for a tone for a sample index
@@ -103,6 +102,8 @@ static tone_t user_tone[4];
  *   wavelen:   wavelength
  *   volume:    volume
  *   level:     effect level
+ *
+ * Return:      value to add to sample
  */
 int gen_tone_val(int si, int wavelen, int volume, int effect_level)
 {
@@ -115,11 +116,53 @@ int gen_tone_val(int si, int wavelen, int volume, int effect_level)
         val = 0 - volume;
     }
 
-    /* check if effect should be applied - if si / level is odd effect is on */
+    /* check if effect should be applied - if si / level is odd then effect is on */
     if (effect_level && (si / effect_level % 2))
+        /* application of effect puts a hole in the sound wave */
         val = 0;
 
     return val;
+}
+
+/* gen_noise - generates a noise value using LFSR
+ *
+ * Params:
+ *   volume:    volume
+ *
+ * Return:      value to add to sample
+ */
+int gen_noise(int volume)
+{
+
+    static struct {
+        unsigned int reg : 24;
+    } LFSR = { 0x7FFFF8 }; /* initial state - each call increments */
+
+    unsigned int feedback, value, silent, positive;
+
+    /* two taps: first used to indicate silence, 2nd used for sign of wave */
+    silent = LFSR.reg >> 22 & 0x1;
+    positive = LFSR.reg >> 20 & 0x1;
+
+    /* feed back into LFSR */
+    feedback = (LFSR.reg >> 17 & 0x1) ^ (LFSR.reg >> 22 & 0x1);
+
+    LFSR.reg = (LFSR.reg << 1) |  feedback;
+
+    /* if not silent then add positve or negative value */
+    if (!silent) {
+        if (positive)
+            value = volume;
+        else
+            value = 0 - volume;
+    } else {
+        value = 0;
+    }
+
+    if (DEBUG && (LFSR.reg == 0x7FFFF8)) printf("wrapped\n");
+
+    if (DEBUG) printf("%x %d %d %d\n", LFSR.reg, silent, positive, value);
+    return value;
 }
 
 
@@ -151,42 +194,50 @@ void create_tone_sq(tone_t *user_tone, Uint8 *stream, int len )
     }
 
     for(i=0; i < samples; i++) {
-        for (v=0; v < 4; v++) {
-            if (user_tone[v].hz == 0)
+        for (v=0; v < VOICES; v++) {
+            if ((user_tone[v].hz == 0) && (user_tone[v].effect.type != NOISE))
                 continue;
-            *datap += gen_tone_val(user_tone[v].si,
-                                user_tone[v].wavelen,
-                                user_tone[v].volume,
-                                user_tone[v].effect.c);
+            /* each voice adds its value to the sample */
+            if (user_tone[v].effect.type == NOISE) {
+                *datap += gen_noise(user_tone[v].volume);
+            } else {
+                *datap += gen_tone_val(user_tone[v].si,
+                                    user_tone[v].wavelen,
+                                    user_tone[v].volume,
+                                    user_tone[v].effect.cur_level);
+            }
             user_tone[v].si++; /* let si wrap */
+
+            /* adjust effect level per effect type */
             switch (user_tone[v].effect.type) {
             case NONE:
             case FIXED:
+            case NOISE:
                 break;
             case BOUNCE:
                 if (user_tone[v].si % user_tone[v].wavelen == 0) {
-                    user_tone[v].effect.c += user_tone[v].effect.inc;
-                    if (user_tone[v].effect.c < user_tone[v].effect.low) {
-                        user_tone[v].effect.c += 2;
+                    user_tone[v].effect.cur_level += user_tone[v].effect.inc;
+                    if (user_tone[v].effect.cur_level < user_tone[v].effect.low) {
+                        user_tone[v].effect.cur_level += 2;
                         user_tone[v].effect.inc = 1;
-                    } else if (user_tone[v].effect.c > user_tone[v].effect.level) {
-                        user_tone[v].effect.c -= 2;
+                    } else if (user_tone[v].effect.cur_level > user_tone[v].effect.level) {
+                        user_tone[v].effect.cur_level -= 2;
                         user_tone[v].effect.inc = -1;
                     }
                 }
                 break;
             case UP:
                 if (user_tone[v].si % user_tone[v].wavelen == 0) {
-                    user_tone[v].effect.c--;
-                    if (user_tone[v].effect.c <= 1)
-                        user_tone[v].effect.c = user_tone[v].effect.level;
+                    user_tone[v].effect.cur_level--;
+                    if (user_tone[v].effect.cur_level <= 1)
+                        user_tone[v].effect.cur_level = user_tone[v].effect.level;
                 }
                 break;
             case DOWN:
                 if (user_tone[v].si % user_tone[v].wavelen == 0) {
-                    user_tone[v].effect.c++;
-                    if (user_tone[v].effect.c >= user_tone[v].effect.level)
-                        user_tone[v].effect.c = 1;
+                    user_tone[v].effect.cur_level++;
+                    if (user_tone[v].effect.cur_level >= user_tone[v].effect.level)
+                        user_tone[v].effect.cur_level = 1;
                 }
                 break;
             }
@@ -226,18 +277,27 @@ void create_tone_cb(void *user_tone, Uint8 *stream, int len )
  *  duration    - duration in ms. 50ms increments, or 0 for continuous
  *  volume      - volume (0-10)
  *  effect      - type of effect
- *  effect_level - value of effect
+ *  effect_level - value of effect, higher numbers give higher effect
  *  effect_low   - low value of effect with bounce
  *
  * Notes:
  *  Duration in 50ms increments.
  *  To Stop a continuous tone play 0 hz with 0 volume.
+ *  Noise effect uses effect level 0.
  */
 void play_tone(int voice, int hz, int duration, int volume, Effect effect, int effect_level, int effect_low)
 {
 
-    if (effect > 4 || volume > 10 || volume < 0 || voice < 0 || voice > 3 || duration < 0)
+    /* sanity check - return if the argments are invalid */
+    if (effect > EFFECTS || volume > MAX_VOLUME || volume < 0 || voice < 0 || voice >= VOICES || duration < 0) {
+        if (DEBUG) printf("no tone to play\n");
         return;
+    }
+
+    if (effect == NOISE) {
+        effect_level = 0;
+        hz = 0; /* dummy */
+    }
 
     user_tone[voice].hz = hz;
     if (hz == 0)
@@ -250,11 +310,12 @@ void play_tone(int voice, int hz, int duration, int volume, Effect effect, int e
         user_tone[voice].effect.level = abs(effect_level) * 8; /* absolute value for safety - x 8 for final effect value */
         user_tone[voice].effect.low = abs(effect_low) * 8;
         user_tone[voice].effect.inc = 1;
-    } else
+    } else {
         user_tone[voice].effect.level = 0;
-    user_tone[voice].effect.c = user_tone[voice].effect.level;
-    user_tone[voice].duration = duration;
-    user_tone[voice].volume = volume * 6;
+    }
+    user_tone[voice].effect.cur_level = user_tone[voice].effect.level;
+    /* adjust volume for range with voice */
+    user_tone[voice].volume = volume * (obtained->silence / VOICES / MAX_VOLUME);
     user_tone[voice].si = 0;                       /* current sample index */
 
     if (DEBUG) printf("playing tone %d  time(ms) = %d , volume = %d\n", hz, duration, volume);
@@ -267,6 +328,7 @@ void play_tone(int voice, int hz, int duration, int volume, Effect effect, int e
             duration -= 50;
         }
         user_tone[voice].hz = 0;
+        user_tone[voice].effect.type = NONE;
     }
 }
 
