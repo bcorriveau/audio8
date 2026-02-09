@@ -39,6 +39,7 @@ class EffectType(Enum):
     Up = 2              # effect cycles up to given effect value
     Down = 3            # effect cycles down to given effect value
     Bounce = 4          # effect cycles up and down in given range
+    Noise = 5           # effect is white noise, tone not used and no effect level needed
 
 play_tone(voice: int,
           tone: int,
