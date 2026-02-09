@@ -39,6 +39,10 @@ def main():
     play_tone(0, 1000, 500, 5, EffectType.Down, 3)
     sleep(0.5)
 
+    print("White noise")
+    play_tone(0, 0, 1000, 5, EffectType.Noise)
+    sleep(0.5)
+
     print("Galloping")
     play_tone(0, 10, 3000, 10, EffectType.Fixed, 700)
 

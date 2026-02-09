@@ -25,8 +25,10 @@ typedef enum {
     FIXED   =   1,      /* fixed effect */
     UP      =   2,      /* cycle up     */
     DOWN    =   3,      /* cycle down   */
-    BOUNCE  =   4       /* cycle down then down */
+    BOUNCE  =   4,      /* cycle down then down */
+    NOISE   =   5,      /* white noise */
 } Effect;
+#define EFFECTS (NOISE)
 
 /* audio_init - initialize audio */
 void audio_init(void);

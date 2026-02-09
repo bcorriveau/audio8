@@ -25,6 +25,7 @@ class EffectType(Enum):
     Up = 2              # effect cycles up to given effect value
     Down = 3            # effect cycles down to given effect value
     Bounce = 4          # effect cycles up and down in given range
+    Noise = 5           # effect is white noise, tone unused and no effect level needed
 
 # Audio C library interface
 libname = pathlib.Path().absolute() / "libcaudio8.so"

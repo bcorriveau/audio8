@@ -14,6 +14,13 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 """
 
+"""
+tone_tester.py
+
+Tool to test playing tones in different voices and modifying
+the effects on them in real time.
+"""
+
 from audio8 import audio_init, audio_close, play_tone, EffectType
 
 def read_int(prompt, default):
@@ -38,7 +45,7 @@ def main():
             break;
         tone = read_int('Tone', 0)
         volume = read_int('Volume', 5)
-        effect_value = read_int('Effect type (none=0,fixed=1,up=2,down=3,bounce=4)', 0)
+        effect_value = read_int('Effect type (none=0,fixed=1,up=2,down=3,bounce=4,noise=5)', 0)
         effect_type = EffectType(effect_value)
         effect_low = 0
         if effect_type != EffectType.NoEffect:
